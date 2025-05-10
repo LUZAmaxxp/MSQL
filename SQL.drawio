@@ -85,6 +85,48 @@
             <mxPoint x="1880" y="1559" as="targetPoint" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-32" value="ACCESS" style="shape=umlFrame;whiteSpace=wrap;html=1;pointerEvents=0;" vertex="1" parent="1">
+          <mxGeometry x="1730" y="1850" width="430" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-34" value="" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/VM_Images.svg;" vertex="1" parent="1">
+          <mxGeometry x="1625" y="1950" width="50" height="46" as="geometry" />
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-35" value="SYSTEM" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1605" y="2008" width="70" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-36" value="GIVE ACCESS TO DASHBOARD" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1880" y="1890" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-38" value="INCLUDE" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;entryX=0.59;entryY=0.057;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="lqXOrUP9vOLOigYQvVyq-36" target="lqXOrUP9vOLOigYQvVyq-39">
+          <mxGeometry width="160" relative="1" as="geometry">
+            <mxPoint x="1865" y="2008" as="sourcePoint" />
+            <mxPoint x="2025" y="2008" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-39" value="CHECK EMAIL DOMAIN" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1930" y="2038" width="140" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-42" value="DOMAIN HAS TO END WITH e-polytechnique.ma" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=center;" vertex="1" parent="1">
+          <mxGeometry x="2110" y="1870" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-43" value="mail&#xa;" style="resizeWidth=1;part=1;strokeColor=none;fillColor=none;align=left;spacingLeft=5;" vertex="1" parent="lqXOrUP9vOLOigYQvVyq-42">
+          <mxGeometry width="160" height="25" relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-44" value="" style="endArrow=none;html=1;rounded=0;" edge="1" parent="1" target="lqXOrUP9vOLOigYQvVyq-36">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="1680" y="1980" as="sourcePoint" />
+            <mxPoint x="1730" y="1930" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-45" value="" style="endArrow=none;html=1;rounded=0;entryX=0.5;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="lqXOrUP9vOLOigYQvVyq-46">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="2020" y="1930" as="sourcePoint" />
+            <mxPoint x="2070" y="1880" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="lqXOrUP9vOLOigYQvVyq-46" value="ADMIN&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" vertex="1" parent="1">
+          <mxGeometry x="2220" y="1970" width="30" height="60" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
