@@ -13,8 +13,7 @@ interface Room {
   amenities: string[];
   images: string;
   isAvailable: boolean;
-  averageRating?: number;
-  reviewCount?: number;
+  
 }
 
 const RoomsPage: React.FC = () => {

@@ -3,6 +3,7 @@ import { User, Home, MoveRight } from 'lucide-react';
 import { Room } from '../../data/rooms';
 import { formatPrice } from '../../lib/utils';
 
+
 interface RoomCardProps {
   room: Room;
   delay?: number;
@@ -20,9 +21,7 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, delay = 0 }) => {
           alt={room.name}
           className="w-full h-60 object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        <div className="absolute top-4 right-4 bg-white py-1 px-3 rounded-full text-sm font-medium text-primary-700">
-          {room.type.charAt(0).toUpperCase() + room.type.slice(1)}
-        </div>
+       
       </div>
       <div className="p-6">
         <h3 className="text-xl font-display mb-2">{room.name}</h3>
@@ -33,10 +32,7 @@ const RoomCard: React.FC<RoomCardProps> = ({ room, delay = 0 }) => {
             <User size={16} className="mr-1" />
             <span>{room.capacity} {room.capacity > 1 ? 'Guests' : 'Guest'}</span>
           </div>
-          <div className="flex items-center text-gray-600 text-sm">
-            <Home size={16} className="mr-1" />
-            <span>{room.size} m²</span>
-          </div>
+         
         </div>
         
         <div className="flex justify-between items-center">

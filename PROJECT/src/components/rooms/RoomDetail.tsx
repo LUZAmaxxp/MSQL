@@ -1,10 +1,19 @@
-import { useState } from 'react';
-import { Calendar, User, Maximize, Bed, ChevronRight, ChevronLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Room, Amenity, amenities } from '../../data/rooms';
-import { formatPrice } from '../../lib/utils';
-import { useAuth } from '../../context/AuthContext';
-import DateRangePicker from '../ui/DateRangePicker';
+import { useState } from "react";
+import {
+  Calendar,
+  User,
+  Maximize,
+  Bed,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Room, Amenity, amenities } from "../../data/rooms";
+import { formatPrice } from "../../lib/utils";
+import { useAuth } from "../../context/AuthContext";
+import DateRangePicker from "../ui/DateRangePicker";
+import { bookingsAPI } from "../../services/api"; // Adjust this import path as needed
+
 
 interface RoomDetailProps {
   room: Room;
@@ -12,52 +21,81 @@ interface RoomDetailProps {
 
 const RoomDetail: React.FC<RoomDetailProps> = ({ room }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [dateRange, setDateRange] = useState<{ startDate: Date; endDate: Date } | null>(null);
+  const [dateRange, setDateRange] = useState<{
+    startDate: Date;
+    endDate: Date;
+  } | null>(null);
   const [guests, setGuests] = useState(1);
+  const [isBooking, setIsBooking] = useState(false);
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const handlePrevImage = () => {
-    setCurrentImageIndex((prevIndex) => 
+    setCurrentImageIndex((prevIndex) =>
       prevIndex === 0 ? room.images.length - 1 : prevIndex - 1
     );
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex((prevIndex) => 
+    setCurrentImageIndex((prevIndex) =>
       prevIndex === room.images.length - 1 ? 0 : prevIndex + 1
     );
   };
 
-  const handleBookNow = () => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    } else {
-      navigate(`/booking/${room.id}`);
-    }
+  const handleDateRangeChange = (range: { startDate: Date; endDate: Date }) => {
+    setDateRange(range);
   };
 
-  // Get amenity details
-  const roomAmenities = amenities.filter(amenity => 
-    room.amenities.includes(amenity.name)
-  );
-
-  // Calculate nights and total price
   const calculateTotalPrice = () => {
     if (!dateRange) return { nights: 0, total: 0 };
-    
-    const diffTime = Math.abs(dateRange.endDate.getTime() - dateRange.startDate.getTime());
+
+    const diffTime = Math.abs(
+      dateRange.endDate.getTime() - dateRange.startDate.getTime()
+    );
     const nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const total = nights * room.price;
-    
+
     return { nights, total };
   };
 
   const { nights, total } = calculateTotalPrice();
 
-  const handleDateRangeChange = (range: { startDate: Date; endDate: Date }) => {
-    setDateRange(range);
+  const handleBookNow = async () => {
+    if (!isAuthenticated) {
+      navigate("/login");
+      return;
+    }
+
+    if (!dateRange) {
+      toast.error("Please select check-in and check-out dates.");
+      return;
+    }
+
+    try {
+      setIsBooking(true);
+
+      const bookingData = {
+        roomId: room.id,
+        checkIn: dateRange.startDate,
+        checkOut: dateRange.endDate,
+        guests,
+      };
+
+      await bookingsAPI.create(bookingData);
+
+      toast.success("Booking successful!");
+      navigate("/bookings/my-bookings"); // Adjust as needed
+    } catch (error) {
+      console.error("Booking failed:", error);
+      toast.error("Booking failed. Please try again.");
+    } finally {
+      setIsBooking(false);
+    }
   };
+
+  const roomAmenities = amenities.filter((amenity) =>
+    room.amenities.includes(amenity.name)
+  );
 
   return (
     <div className="py-8">
@@ -71,7 +109,7 @@ const RoomDetail: React.FC<RoomDetailProps> = ({ room }) => {
                 alt={`${room.name} - view ${currentImageIndex + 1}`}
                 className="w-full h-96 object-cover"
               />
-              
+
               <button
                 onClick={handlePrevImage}
                 className="absolute top-1/2 left-4 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md text-gray-800 transition-colors"
@@ -79,7 +117,7 @@ const RoomDetail: React.FC<RoomDetailProps> = ({ room }) => {
               >
                 <ChevronLeft size={20} />
               </button>
-              
+
               <button
                 onClick={handleNextImage}
                 className="absolute top-1/2 right-4 transform -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-md text-gray-800 transition-colors"
@@ -87,14 +125,14 @@ const RoomDetail: React.FC<RoomDetailProps> = ({ room }) => {
               >
                 <ChevronRight size={20} />
               </button>
-              
+
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                 {room.images.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
                     className={`w-2.5 h-2.5 rounded-full ${
-                      currentImageIndex === index ? 'bg-white' : 'bg-white/50'
+                      currentImageIndex === index ? "bg-white" : "bg-white/50"
                     }`}
                     aria-label={`View image ${index + 1}`}
                   />
@@ -108,7 +146,7 @@ const RoomDetail: React.FC<RoomDetailProps> = ({ room }) => {
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
                   className={`rounded-lg overflow-hidden ${
-                    currentImageIndex === index ? 'ring-2 ring-primary-500' : ''
+                    currentImageIndex === index ? "ring-2 ring-primary-500" : ""
                   }`}
                 >
                   <img
@@ -123,7 +161,7 @@ const RoomDetail: React.FC<RoomDetailProps> = ({ room }) => {
             {/* Room Details */}
             <div className="mt-8">
               <h1 className="text-3xl font-display mb-4">{room.name}</h1>
-              
+
               <div className="flex flex-wrap gap-6 mb-6">
                 <div className="flex items-center">
                   <User size={18} className="text-primary-600 mr-2" />
@@ -138,18 +176,20 @@ const RoomDetail: React.FC<RoomDetailProps> = ({ room }) => {
                   <span>{room.bedType} Bed</span>
                 </div>
               </div>
-              
+
               <div className="prose max-w-none mb-8">
                 <p className="text-gray-700">{room.description}</p>
               </div>
-              
+
               <div className="mb-8">
                 <h3 className="text-xl font-medium mb-4">Amenities</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {roomAmenities.map((amenity) => (
-                    <div key={amenity.id} className="flex items-center p-3 bg-gray-50 rounded-lg">
+                    <div
+                      key={amenity.id}
+                      className="flex items-center p-3 bg-gray-50 rounded-lg"
+                    >
                       <span className="text-primary-600 mr-2">
-                        {/* Here we would use the icon component, but for simplicity we'll just use the name */}
                         <span className="w-5 h-5 flex items-center justify-center">
                           {amenity.icon[0].toUpperCase()}
                         </span>
@@ -191,11 +231,13 @@ const RoomDetail: React.FC<RoomDetailProps> = ({ room }) => {
                     onChange={(e) => setGuests(Number(e.target.value))}
                     className="w-full border border-gray-300 rounded-md p-2 text-sm"
                   >
-                    {Array.from({ length: room.capacity }, (_, i) => i + 1).map((num) => (
-                      <option key={num} value={num}>
-                        {num} {num === 1 ? 'Guest' : 'Guests'}
-                      </option>
-                    ))}
+                    {Array.from({ length: room.capacity }, (_, i) => i + 1).map(
+                      (num) => (
+                        <option key={num} value={num}>
+                          {num} {num === 1 ? "Guest" : "Guests"}
+                        </option>
+                      )
+                    )}
                   </select>
                 </div>
 
@@ -213,17 +255,21 @@ const RoomDetail: React.FC<RoomDetailProps> = ({ room }) => {
                     </div>
                     <div className="border-t border-gray-200 mt-3 pt-3 flex justify-between font-semibold">
                       <span>Total</span>
-                      <span>{formatPrice(total + (nights * 10))}</span>
+                      <span>{formatPrice(total + nights * 10)}</span>
                     </div>
                   </div>
                 )}
 
                 <button
                   onClick={handleBookNow}
-                  className="w-full btn-primary py-3 rounded-lg flex items-center justify-center"
-                  disabled={!dateRange}
+                  className="w-full btn-primary py-3 rounded-lg flex items-center justify-center disabled:opacity-50"
+                  disabled={!dateRange || isBooking}
                 >
-                  {isAuthenticated ? 'Book Now' : 'Sign In to Book'}
+                  {isBooking
+                    ? "Booking..."
+                    : isAuthenticated
+                    ? "Book Now"
+                    : "Sign In to Book"}
                 </button>
 
                 <p className="text-center text-sm text-gray-500">

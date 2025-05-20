@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { authAPI } from '../services/api';
+
+import { authAPI  } from "../services/api";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -9,7 +9,7 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login } = useAuth();
+  
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,7 +25,7 @@ const LoginPage: React.FC = () => {
       const response = await authAPI.login({ email, password });
       const { token, user } = response.data;
       
-      // Store token in localStorage
+      
       localStorage.setItem('token', token);
       
       // Update auth context
@@ -115,16 +115,7 @@ const LoginPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-            <p className="text-xs text-gray-500">
-              For demo purposes, use:
-              <br />
-              Email: john@example.com or admin@azurehaven.com
-              <br />
-              Password: any string will work
-            </p>
-          </div>
-        </div>
+       </div>
       </div>
     </div>
   );

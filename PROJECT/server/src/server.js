@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
-import { sql } from './config/database.js';
+import { sql , dbConfig} from './config/database.js';
 import authRoutes from './routes/auth.js';
 import roomRoutes from './routes/rooms.js';
 import bookingRoutes from './routes/bookings.js';
@@ -20,12 +20,14 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 // Test database connection
-try {
-  await sql.connect();
-  console.log('Connected to MSSQL database');
-} catch (err) {
-  console.error('Database connection failed:', err);
-}
+
+  try {
+    await sql.connect(dbConfig);
+    console.log("Connected to SQL Server!");
+  } catch (err) {
+    console.error("Connection failed:", err);
+  }
+
 
 // Routes
 app.use('/api/auth', authRoutes);
