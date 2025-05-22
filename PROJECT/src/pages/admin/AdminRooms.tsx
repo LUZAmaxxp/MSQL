@@ -261,7 +261,7 @@ const AdminRooms: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         <img 
-                          src={room.images[0]} 
+                          src={room.images} 
                           alt={room.name}
                           className="w-10 h-10 object-cover rounded-lg mr-3"
                         />

@@ -52,10 +52,14 @@ const ProfilePage: React.FC = () => {
       if (!user) return;
 
       try {
-        const response = await bookingsAPI.getUserBookings();
+        const response = await bookingsAPI.getMyBookings();
         setUserBookings(response.data);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to fetch bookings. Please try again later.');
+        if (err.response && err.response.status === 401) {
+          window.location.href = "/login";
+        } else {
+          setError(err.response?.data?.message || 'Failed to fetch bookings. Please try again later.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -82,7 +86,11 @@ const ProfilePage: React.FC = () => {
       updateUser(response.data);
       setUpdateSuccess(true);
     } catch (err: any) {
-      setUpdateError(err.response?.data?.message || 'Failed to update profile. Please try again later.');
+      if (err.response && err.response.status === 401) {
+        window.location.href = "/login";
+      } else {
+        setUpdateError(err.response?.data?.message || 'Failed to update profile. Please try again later.');
+      }
     } finally {
       setIsUpdating(false);
     }

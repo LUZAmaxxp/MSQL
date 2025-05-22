@@ -51,10 +51,14 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const fetchDashboardStats = async () => {
       try {
-        const response = await adminAPI.getDashboardStats();
+        const response = await adminAPI.getDashboard();
         setStats(response.data);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to fetch dashboard statistics. Please try again later.');
+        if (err.response && err.response.status === 401) {
+          window.location.href = "/login";
+        } else {
+          setError(err.response?.data?.message || 'Failed to fetch dashboard statistics. Please try again later.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -293,29 +297,7 @@ const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-elegant p-6">
-            <h2 className="text-xl font-medium mb-6">Quick Actions</h2>
-            <div className="space-y-4">
-              <Link 
-                to="/admin/bookings/new" 
-                className="block w-full btn-primary text-center py-2"
-              >
-                Create New Booking
-              </Link>
-              <Link 
-                to="/admin/rooms/new" 
-                className="block w-full btn-secondary text-center py-2"
-              >
-                Add New Room
-              </Link>
-              <Link 
-                to="/admin/users" 
-                className="block w-full btn-outline text-center py-2"
-              >
-                Manage Users
-              </Link>
-            </div>
-          </div>
+         
         </div>
       </div>
     </div>

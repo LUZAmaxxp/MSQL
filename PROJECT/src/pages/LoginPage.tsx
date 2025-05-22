@@ -1,43 +1,42 @@
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-
-import { authAPI  } from "../services/api";
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { authAPI } from "../../services/api";
+import { useAuth } from "../context/AuthContext"; // Import the useAuth hook
 
 const LoginPage: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
-  
+
+  // Use the auth context
+  const { login } = useAuth();
+
   const navigate = useNavigate();
   const location = useLocation();
 
   // Check if there's a redirect parameter in the URL
-  const from = location.state?.from || '/';
+  const from = location.state?.from || "/";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
-      const response = await authAPI.login({ email, password });
-      const { token, user } = response.data;
-      
-      
-      localStorage.setItem('token', token);
-      
-      // Update auth context
-      const success = await login(user);
-      
+      // Use the login method from the auth context which internally calls the API
+      const success = await login(email, password);
+
       if (success) {
         navigate(from);
       } else {
-        setError('Failed to update user session. Please try again.');
+        setError("Invalid email or password. Please try again.");
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'An error occurred during login. Please try again.');
+      setError(
+        err.response?.data?.message ||
+          "An error occurred during login. Please try again."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +59,10 @@ const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Email
               </label>
               <input
@@ -74,7 +76,10 @@ const LoginPage: React.FC = () => {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Password
               </label>
               <input
@@ -92,7 +97,10 @@ const LoginPage: React.FC = () => {
                 <input type="checkbox" className="mr-2" />
                 <span className="text-sm text-gray-700">Remember me</span>
               </label>
-              <a href="#" className="text-sm text-primary-600 hover:text-primary-700">
+              <a
+                href="#"
+                className="text-sm text-primary-600 hover:text-primary-700"
+              >
                 Forgot password?
               </a>
             </div>
@@ -102,20 +110,22 @@ const LoginPage: React.FC = () => {
               className="w-full btn-primary py-2 rounded-lg"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-primary-600 hover:text-primary-700">
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                className="text-primary-600 hover:text-primary-700"
+              >
                 Sign up
               </Link>
             </p>
           </div>
-
-       </div>
+        </div>
       </div>
     </div>
   );

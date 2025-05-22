@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -12,11 +12,14 @@
   "dependencies": {
     "@headlessui/react": "^1.7.18",
     "axios": "^1.9.0",
+    "axios-retry": "^4.5.0",
     "date-fns": "^3.2.0",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.22.0"
+    "react-router-dom": "^6.22.0",
+    "react-toastify": "^11.0.5",
+    "secure-ls": "^2.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

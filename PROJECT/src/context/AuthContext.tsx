@@ -5,7 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import axios from "axios";
+import { authAPI } from "../services/api"; // Import your API service
 
 export interface User {
   id: number;
@@ -27,6 +27,7 @@ interface AuthContextType {
     password: string
   ) => Promise<boolean>;
   logout: () => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,25 +37,37 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // Check for token and user in localStorage
+    const token = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
+
+    if (token && storedUser) {
       setUser(JSON.parse(storedUser));
       setIsAuthenticated(true);
     }
-    setIsLoading(false);
+    setLoading(false);
   }, []);
+  
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const response = await axios.post("/api/auth/login", { email, password });
-      const loggedInUser: User = response.data;
+      const response = await authAPI.login({ email, password });
 
-      setUser(loggedInUser);
+      // Extract token, refreshToken and user data from response
+      const { token, refreshToken, user: userData } = response.data;
+
+      // Store token, refreshToken and user in localStorage
+      localStorage.setItem("token", token);
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      setUser(userData);
       setIsAuthenticated(true);
-      localStorage.setItem("user", JSON.stringify(loggedInUser));
       return true;
     } catch (error) {
       console.error("Login failed:", error);
@@ -69,34 +82,52 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     password: string
   ): Promise<boolean> => {
     try {
-      const response = await axios.post("/api/auth/register", {
+      // Log the request payload for debugging
+      console.log("Register payload:", {
+        firstName,
+        lastName,
+        email,
+        password: "***",
+      });
+
+      const response = await authAPI.register({
         firstName,
         lastName,
         email,
         password,
       });
 
-      const newUser: User = response.data;
+      // Extract token and user data from response
+      const { token, user: userData } = response.data;
 
-      setUser(newUser);
+      // Store token and user in localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      setUser(userData);
       setIsAuthenticated(true);
-      localStorage.setItem("user", JSON.stringify(newUser));
       return true;
-    } catch (error) {
+    } catch (error: any) {
+      // More detailed error logging
       console.error("Registration failed:", error);
-      return false;
+      console.error("Response:", error.response?.data);
+
+      // Throw the error to be handled by the component
+      throw error;
     }
   };
 
   const logout = () => {
     setUser(null);
     setIsAuthenticated(false);
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
   };
 
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.email === "admin@azurehaven.com" ;
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         Loading...
@@ -106,11 +137,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, isAdmin, login, register, logout }}
+      value={{
+        user,
+        isAuthenticated,
+        isAdmin,
+        login,
+        register,
+        logout,
+        loading,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
+
 };
 
 export const useAuth = (): AuthContextType => {

@@ -94,7 +94,8 @@ const Header: React.FC = () => {
                   onClick={toggleProfile}
                   className={`flex items-center space-x-1 ${linkClasses}`}
                 >
-                  <span>{user?.name.split(' ')[0]}</span>
+                  <User size={16} />
+                  <span>{user?.firstName}</span>
                   <ChevronDown size={16} />
                 </button>
                 {isProfileOpen && (
