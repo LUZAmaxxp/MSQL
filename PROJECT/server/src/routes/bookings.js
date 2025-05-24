@@ -9,17 +9,42 @@ const router = express.Router();
 router.get("/", adminAuth, async (req, res) => {
   try {
     const result = await sql.query`
-      SELECT b.*, 
-        u.firstName as userFirstName, 
-        u.lastName as userLastName,
-        r.name as roomName,
-        r.roomType
+      SELECT 
+        b.id, b.roomId, b.userId, b.checkIn, b.checkOut, b.guests, b.totalPrice, b.status, b.createdAt,
+        u.id as userIdJoined, u.firstName, u.lastName, u.email, u.avatar,
+        r.id as roomIdJoined, r.name as roomName, r.roomType
       FROM Bookings b
       JOIN Users u ON b.userId = u.id
       JOIN Rooms r ON b.roomId = r.id
       ORDER BY b.createdAt DESC
     `;
-    res.json(result.recordset);
+
+    // Transform the recordset to match the frontend's Booking interface
+    const transformedBookings = result.recordset.map((b) => ({
+      id: b.id,
+      roomId: b.roomId,
+      userId: b.userId,
+      checkIn: b.checkIn,
+      checkOut: b.checkOut,
+      guests: b.guests, // Ensure 'guests' is selected in your SQL query and exists in the Bookings table
+      totalPrice: b.totalPrice,
+      status: b.status,
+      createdAt: b.createdAt,
+      room: {
+        id: b.roomIdJoined, // Use the aliased ID for clarity, or b.roomId
+        name: b.roomName,
+        roomType: b.roomType,
+      },
+      user: {
+        id: b.userIdJoined, // Use the aliased ID for clarity, or b.userId
+        firstName: b.firstName,
+        lastName: b.lastName,
+        email: b.email,
+        avatar: b.avatar, // Ensure u.avatar is selected in the SQL query if it exists
+      },
+    }));
+
+    res.json(transformedBookings);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -39,7 +64,18 @@ router.get("/my-bookings", auth, async (req, res) => {
       WHERE b.userId = ${req.user.id}
       ORDER BY b.createdAt DESC
     `;
-    res.json(result.recordset);
+    const bookings = result.recordset.map((b) => ({
+      ...b,
+      room:{ 
+        name: b.roomName,
+        roomType: b.roomType,
+        images: b.images,
+
+      },
+
+    }));
+
+    res.json(bookings);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error" });
@@ -120,7 +156,7 @@ router.patch(
   adminAuth,
   [
     body("status")
-      .isIn(["pending", "confirmed", "cancelled"])
+      .isIn(["pending", "confirmed", "canceled", "completed"]) // Changed 'cancelled' to 'canceled' and added 'completed'
       .withMessage("Invalid status"),
   ],
   async (req, res) => {
@@ -143,6 +179,8 @@ router.patch(
         return res.status(404).json({ message: "Booking not found" });
       }
 
+      // Potentially transform this response too if your frontend expects nested user/room for the update response
+      // For now, let's assume the frontend will re-fetch or update its state based on the provided ID and new status.
       res.json(result.recordset[0]);
     } catch (error) {
       console.error(error);

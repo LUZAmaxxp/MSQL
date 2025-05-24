@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Layout from "./components/layout/Layout";
 import HomePage from "./pages/HomePage";
@@ -13,7 +13,7 @@ import AdminRooms from "./pages/admin/AdminRooms";
 import AdminBookings from "./pages/admin/AdminBookings";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import NotFoundPage from "./pages/NotFoundPage";
+
 
 
 function App() {
@@ -47,7 +47,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="rooms" element={<RoomsPage />} />
-          <Route path="rooms/:id" element={<RoomDetailPage />} />
+          <Route path="rooms/:roomid" element={<RoomDetailPage />} />
           <Route
             path="booking/:roomId"
             element={
@@ -84,8 +84,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="404" element={<NotFoundPage />} />
-          <Route path="*" element={<Navigate to="/404" replace />} />
+        
         </Route>
       </Routes>
     </AuthProvider>

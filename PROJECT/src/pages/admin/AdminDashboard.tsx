@@ -1,11 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  Users, Bed, Calendar, DollarSign, 
-  TrendingUp, ChevronRight, Eye, Settings
-} from 'lucide-react';
-import { adminAPI } from '../../services/api';
-import { formatPrice } from '../../lib/utils';
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  Users,
+  Bed,
+  Calendar,
+  DollarSign,
+  TrendingUp,
+  ChevronRight,
+  Eye,
+  Settings,
+} from "lucide-react";
+import { adminAPI } from "../../services/api";
+import { formatPrice } from "../../lib/utils";
 
 interface DashboardStats {
   totalBookings: number;
@@ -26,18 +32,18 @@ interface DashboardStats {
       lastName: string;
       email: string;
       avatar?: string;
-    };
+    } | null;
     room: {
       id: number;
       name: string;
       roomType: string;
-    };
+    } | null;
   }>;
 }
 
-const AdminDashboard: React.FC = () => {
+const AdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [stats, setStats] = useState<DashboardStats>({
     totalBookings: 0,
     totalRooms: 0,
@@ -52,12 +58,17 @@ const AdminDashboard: React.FC = () => {
     const fetchDashboardStats = async () => {
       try {
         const response = await adminAPI.getDashboard();
+        console.log("Dashboard stats response:", response.data);
         setStats(response.data);
+      
       } catch (err: any) {
         if (err.response && err.response.status === 401) {
           window.location.href = "/login";
         } else {
-          setError(err.response?.data?.message || 'Failed to fetch dashboard statistics. Please try again later.');
+          setError(
+            err.response?.data?.message ||
+              "Failed to fetch dashboard statistics. Please try again later."
+          );
         }
       } finally {
         setIsLoading(false);
@@ -74,7 +85,7 @@ const AdminDashboard: React.FC = () => {
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {[1, 2, 3, 4].map(index => (
+              {[1, 2, 3, 4].map((index) => (
                 <div key={index} className="h-32 bg-gray-200 rounded-xl"></div>
               ))}
             </div>
@@ -120,7 +131,9 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div>
                 <p className="text-gray-500 text-sm">Total Bookings</p>
-                <h3 className="text-2xl font-semibold">{stats.totalBookings}</h3>
+                <h3 className="text-2xl font-semibold">
+                  {stats.totalBookings}
+                </h3>
               </div>
             </div>
             <div className="flex items-center text-sm text-gray-600">
@@ -137,7 +150,9 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div>
                 <p className="text-gray-500 text-sm">Total Revenue</p>
-                <h3 className="text-2xl font-semibold">{formatPrice(stats.totalRevenue)}</h3>
+                <h3 className="text-2xl font-semibold">
+                  {formatPrice(stats.totalRevenue)}
+                </h3>
               </div>
             </div>
             <div className="flex items-center text-sm text-gray-600">
@@ -171,7 +186,9 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div>
                 <p className="text-gray-500 text-sm">Occupancy Rate</p>
-                <h3 className="text-2xl font-semibold">{stats.occupancyRate}%</h3>
+                <h3 className="text-2xl font-semibold">
+                  {stats.occupancyRate}%
+                </h3>
               </div>
             </div>
             <div className="flex items-center text-sm text-gray-600">
@@ -186,8 +203,8 @@ const AdminDashboard: React.FC = () => {
         <div className="bg-white rounded-xl shadow-elegant p-6 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-medium">Recent Bookings</h2>
-            <Link 
-              to="/admin/bookings" 
+            <Link
+              to="/admin/bookings"
               className="text-sm text-primary-600 hover:text-primary-700 flex items-center"
             >
               View All
@@ -209,50 +226,108 @@ const AdminDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {stats.recentBookings.map(booking => (
-                  <tr key={booking.id} className="border-t border-gray-100">
-                    <td className="py-4 pr-4">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 mr-3 overflow-hidden">
-                          {booking.user.avatar ? (
-                            <img 
-                              src={booking.user.avatar} 
-                              alt={`${booking.user.firstName} ${booking.user.lastName}`} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
-                              {booking.user.firstName.charAt(0)}
+                {stats.recentBookings.map((booking) => {
+                  // Safe access to user and room data with fallbacks
+                  const user = booking.user || {
+                    firstName: "Unknown",
+                    lastName: "User",
+                    avatar: null,
+                  };
+                  const room = booking.room || {
+                    name: "Unknown Room",
+                    roomType: "Standard",
+                  };
+
+                  return (
+                    <tr key={booking.id} className="border-t border-gray-100">
+                      <td className="py-4 pr-4">
+                        <div className="flex items-center">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 mr-3 overflow-hidden">
+                            {user.avatar ? (
+                              <img
+                                src={user.avatar}
+                                alt={`${user.firstName} ${user.lastName}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  // Fallback if image fails to load
+                                  const target = e.target as HTMLImageElement;
+                                  target.style.display = "none";
+                                  target.nextElementSibling?.classList.remove(
+                                    "hidden"
+                                  );
+                                }}
+                              />
+                            ) : null}
+                            <div
+                              className={`w-full h-full flex items-center justify-center text-gray-500 text-sm ${
+                                user.avatar ? "hidden" : ""
+                              }`}
+                            >
+                              {user.firstName?.charAt(0) || "U"}
                             </div>
-                          )}
+                          </div>
+                          <span>{`${user.firstName} ${user.lastName}`}</span>
                         </div>
-                        <span>{`${booking.user.firstName} ${booking.user.lastName}`}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 pr-4">{booking.room.name}</td>
-                    <td className="py-4 pr-4">{new Date(booking.checkIn).toLocaleDateString()}</td>
-                    <td className="py-4 pr-4">{new Date(booking.checkOut).toLocaleDateString()}</td>
-                    <td className="py-4 pr-4 font-medium">{formatPrice(booking.totalPrice)}</td>
-                    <td className="py-4 pr-4">
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                        booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                        booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                        booking.status === 'canceled' ? 'bg-red-100 text-red-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="py-4">
-                      <Link 
-                        to={`/admin/bookings/${booking.id}`}
-                        className="text-primary-600 hover:text-primary-700"
-                      >
-                        <Eye size={18} />
-                      </Link>
+                      </td>
+                      <td className="py-4 pr-4">
+                        <div>
+                          <div className="font-medium">{room.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {room.roomType}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4 pr-4">
+                        {booking.checkIn
+                          ? new Date(booking.checkIn).toLocaleDateString()
+                          : "N/A"}
+                      </td>
+                      <td className="py-4 pr-4">
+                        {booking.checkOut
+                          ? new Date(booking.checkOut).toLocaleDateString()
+                          : "N/A"}
+                      </td>
+                      <td className="py-4 pr-4 font-medium">
+                        {formatPrice(booking.totalPrice || 0)}
+                      </td>
+                      <td className="py-4 pr-4">
+                        <span
+                          className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                            booking.status === "confirmed"
+                              ? "bg-green-100 text-green-800"
+                              : booking.status === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : booking.status === "canceled" ||
+                                booking.status === "cancelled"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-blue-100 text-blue-800"
+                          }`}
+                        >
+                          {booking.status
+                            ? booking.status.charAt(0).toUpperCase() +
+                              booking.status.slice(1)
+                            : "Unknown"}
+                        </span>
+                      </td>
+                      <td className="py-4">
+                        <Link
+                          to={`/admin/bookings/${booking.id}`}
+                          className="text-primary-600 hover:text-primary-700"
+                        >
+                          <Eye size={18} />
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+
+                {stats.recentBookings.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-gray-500">
+                      No recent bookings found
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -263,8 +338,8 @@ const AdminDashboard: React.FC = () => {
           <div className="md:col-span-2 bg-white rounded-xl shadow-elegant p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-medium">Room Availability</h2>
-              <Link 
-                to="/admin/rooms" 
+              <Link
+                to="/admin/rooms"
                 className="text-sm text-primary-600 hover:text-primary-700 flex items-center"
               >
                 Manage Rooms
@@ -273,31 +348,60 @@ const AdminDashboard: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              {stats.recentBookings.map(booking => (
-                <div key={booking.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{booking.room.name}</h4>
-                    <p className="text-sm text-gray-600">{booking.room.roomType}</p>
+              {stats.recentBookings.slice(0, 5).map((booking) => {
+                const room = booking.room || {
+                  name: "Unknown Room",
+                  roomType: "Standard",
+                };
+
+                return (
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  >
+                    <div>
+                      <h4 className="font-medium">{room.name}</h4>
+                      <p className="text-sm text-gray-600">{room.roomType}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">
+                        {booking.checkIn && booking.checkOut
+                          ? `${new Date(
+                              booking.checkIn
+                            ).toLocaleDateString()} - ${new Date(
+                              booking.checkOut
+                            ).toLocaleDateString()}`
+                          : "Dates not available"}
+                      </p>
+                      <span
+                        className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
+                          booking.status === "confirmed"
+                            ? "bg-green-100 text-green-800"
+                            : booking.status === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : booking.status === "canceled" ||
+                              booking.status === "cancelled"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-blue-100 text-blue-800"
+                        }`}
+                      >
+                        {booking.status
+                          ? booking.status.charAt(0).toUpperCase() +
+                            booking.status.slice(1)
+                          : "Unknown"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">
-                      {new Date(booking.checkIn).toLocaleDateString()} - {new Date(booking.checkOut).toLocaleDateString()}
-                    </p>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium mt-1 ${
-                      booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                      booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      booking.status === 'canceled' ? 'bg-red-100 text-red-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
-                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                    </span>
-                  </div>
+                );
+              })}
+
+              {stats.recentBookings.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No room availability data available
                 </div>
-              ))}
+              )}
             </div>
           </div>
-
-         
         </div>
       </div>
     </div>

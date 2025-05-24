@@ -2,8 +2,10 @@ import { sql } from "../config/database.js";
 import { auth, adminAuth } from "../middleware/auth.js";
 import { body, validationResult } from "express-validator";
 import express from "express";
+import cors from "cors";
 
 const router = express.Router();
+router.use(cors());
 
 // Get all rooms
 router.get("/", async (req, res) => {
@@ -50,49 +52,29 @@ router.get("/:id", async (req, res) => {
         u.id as userId
       FROM Reviews r
       JOIN Users u ON r.userId = u.id
-      WHERE r.roomId = ${req.params.id}
+      WHERE r.roomId = ${roomId}
       ORDER BY r.createdAt DESC
     `;
 
-    // Get room amenities
-    const amenitiesResult = await sql.query`
-      SELECT a.name
-      FROM RoomAmenities ra
-      JOIN Amenities a ON ra.amenityId = a.id
-      WHERE ra.roomId = ${req.params.id}
-    `;
-
-    const amenities = amenitiesResult.recordset.map(a => a.name);
-
-    // Parse images and amenities fields if they are JSON strings
+    // Extract room data
     let roomData = { ...result.recordset[0] };
 
-    try {
-      if (roomData.images && typeof roomData.images === "string") {
-        roomData.images = JSON.parse(roomData.images);
-      } else if (!roomData.images) {
-        roomData.images = [];
+    // Parse images field: assume comma separated string or single URL string
+    if (roomData.images && typeof roomData.images === "string") {
+      if (roomData.images.includes(",")) {
+        roomData.images = roomData.images.split(",").map((img) => img.trim());
+      } else {
+        roomData.images = [roomData.images.trim()];
       }
-    } catch (e) {
-      console.error("Error parsing images JSON:", e);
+    } else {
       roomData.images = [];
     }
 
-    try {
-      if (roomData.amenities && typeof roomData.amenities === "string") {
-        roomData.amenities = JSON.parse(roomData.amenities);
-      } else if (!roomData.amenities) {
-        roomData.amenities = amenities;
-      }
-    } catch (e) {
-      console.error("Error parsing amenities JSON:", e);
-      // fallback to amenities from join
-      roomData.amenities = amenities;
-    }
-
-    // Override amenities with joined amenities if parsing failed or empty
-    if (!roomData.amenities || roomData.amenities.length === 0) {
-      roomData.amenities = amenities;
+    // Parse amenities field: assume comma separated string
+    if (roomData.amenities && typeof roomData.amenities === "string") {
+      roomData.amenities = roomData.amenities.split(",").map((a) => a.trim());
+    } else {
+      roomData.amenities = [];
     }
 
     res.json({
@@ -101,11 +83,7 @@ router.get("/:id", async (req, res) => {
     });
   } catch (error) {
     console.error("Get room details error:", error);
-    if (error instanceof Error) {
-      res.status(500).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: "Error fetching room details" });
-    }
+    res.status(500).json({ message: "Error fetching room details" });
   }
 });
 
@@ -138,10 +116,18 @@ router.post(
         images,
       } = req.body;
 
+      // Save amenities and images as comma separated strings
+      const amenitiesString = Array.isArray(amenities)
+        ? amenities.join(",")
+        : amenities || "";
+      const imagesString = Array.isArray(images)
+        ? images.join(",")
+        : images || "";
+
       const result = await sql.query`
       INSERT INTO Rooms (name, description, price, capacity, roomType, amenities, images)
       OUTPUT INSERTED.*
-      VALUES (${name}, ${description}, ${price}, ${capacity}, ${roomType}, ${amenities}, ${images})
+      VALUES (${name}, ${description}, ${price}, ${capacity}, ${roomType}, ${amenitiesString}, ${imagesString})
     `;
 
       res.status(201).json(result.recordset[0]);
@@ -166,6 +152,14 @@ router.put("/:id", adminAuth, async (req, res) => {
       isAvailable,
     } = req.body;
 
+    // Convert amenities and images arrays to comma separated strings
+    const amenitiesString = Array.isArray(amenities)
+      ? amenities.join(",")
+      : amenities || "";
+    const imagesString = Array.isArray(images)
+      ? images.join(",")
+      : images || "";
+
     const result = await sql.query`
       UPDATE Rooms
       SET 
@@ -174,8 +168,8 @@ router.put("/:id", adminAuth, async (req, res) => {
         price = ${price},
         capacity = ${capacity},
         roomType = ${roomType},
-        amenities = ${amenities},
-        images = ${images},
+        amenities = ${amenitiesString},
+        images = ${imagesString},
         isAvailable = ${isAvailable},
         updatedAt = GETDATE()
       OUTPUT INSERTED.*
@@ -259,11 +253,9 @@ router.post(
     `;
 
       if (hasBooked.recordset.length === 0) {
-        return res
-          .status(403)
-          .json({
-            message: "You must have stayed in this room to leave a review",
-          });
+        return res.status(403).json({
+          message: "You must have stayed in this room to leave a review",
+        });
       }
 
       // Add the review
@@ -364,8 +356,7 @@ router.delete("/:roomId/reviews/:reviewId", auth, async (req, res) => {
 
     // Delete the review
     await sql.query`
-      DELETE FROM Reviews
-      WHERE id = ${reviewId}
+      DELETE FROM Reviews WHERE id = ${reviewId}
     `;
 
     res.json({ message: "Review deleted successfully" });

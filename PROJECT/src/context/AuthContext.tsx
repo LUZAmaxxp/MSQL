@@ -125,7 +125,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     localStorage.removeItem("user");
   };
 
-  const isAdmin = user?.email === "admin@azurehaven.com" ;
+  const isAdmin = user?.role === "admin"; ;
 
   if (loading) {
     return (

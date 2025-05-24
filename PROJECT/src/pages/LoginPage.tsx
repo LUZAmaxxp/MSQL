@@ -24,11 +24,13 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Use the login method from the auth context which internally calls the API
+      
       const success = await login(email, password);
+      
 
       if (success) {
         navigate(from);
+        ;
       } else {
         setError("Invalid email or password. Please try again.");
       }

@@ -39,11 +39,14 @@ router.post("/register", registerValidation, async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user with default role as 'user'
+    // Determine role based on email
+    const role = email.endsWith("@azurehaven.com") ? "admin" : "user";
+
+    // Create user
     const result = await sql.query`
       INSERT INTO Users (email, password, firstName, lastName, role)
       OUTPUT INSERTED.id, INSERTED.email, INSERTED.firstName, INSERTED.lastName, INSERTED.role
-      VALUES (${email}, ${hashedPassword}, ${firstName}, ${lastName}, 'user')
+      VALUES (${email}, ${hashedPassword}, ${firstName}, ${lastName}, ${role})
     `;
 
     const user = result.recordset[0];
@@ -88,6 +91,7 @@ router.post("/login", async (req, res) => {
     }
 
     const user = result.recordset[0];
+   
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
@@ -106,7 +110,7 @@ router.post("/login", async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        role: user.role ,
       },
     });
   } catch (error) {
